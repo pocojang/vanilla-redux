@@ -49,7 +49,7 @@ const beholder = (store) => (next) => (action) => {
 	return next(action);
 };
 
-const render = function(state) {
+const render = function (state) {
 	const { count, message } = state;
 
 	document.querySelector('.count').innerHTML = `<h1>${count}</h1>`;
@@ -62,30 +62,30 @@ const store = createStore(reducer, applyMiddleware(beholder));
 // Subscribe
 store.subscribe(() => render(store.getState()));
 
-const init = function() {
+const init = function () {
 	render(initState);
 
-	document.querySelector('.inc').addEventListener('click', function() {
+	document.querySelector('.increment-btn').addEventListener('click', function () {
 		store.dispatch({
 			type: INCREMENT,
 			payload: '증가하겠습니다',
 		});
 	});
 
-	document.querySelector('.dec').addEventListener('click', function() {
+	document.querySelector('.decrement-btn').addEventListener('click', function () {
 		store.dispatch({
 			type: DECREMENT,
 			message: '감소하겠습니다',
 		});
 	});
 
-	document.querySelector('.reset').addEventListener('click', function() {
+	document.querySelector('.reset-btn').addEventListener('click', function () {
 		store.dispatch({
 			type: RESET,
 		});
 	});
 };
 
-window.onload = function() {
+window.onload = function () {
 	init();
 };
