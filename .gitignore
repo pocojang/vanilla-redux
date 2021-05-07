@@ -246,4 +246,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Deploy
+dist
+
 # End of https://www.gitignore.io/api/node,macos,windows,jetbrains+all,visualstudiocode
