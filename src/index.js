@@ -1,4 +1,6 @@
 import { createStore, applyMiddleware } from 'redux';
+import { composeWithDevTools } from 'redux-devtools-extension';
+import ReduxThunk from 'redux-thunk';
 
 const INCREMENT = '@action/increment';
 const DECREMENT = '@action/decrement';
@@ -8,6 +10,7 @@ const RESET = '@action/reset';
 const initState = {
 	count: 0,
 	message: '안녕하세요!!!!',
+	imgUrl: '',
 };
 
 // Reducer
@@ -31,6 +34,16 @@ function reducer(state = initState, action) {
 				count: 0,
 				message: action.message ? action.message : '',
 			};
+		case 'GET_DOG_SUCCESS':
+			return {
+				...state,
+				imgUrl: action.payload,
+			};
+		case 'GET_DOG_ERROR':
+			return {
+				...state,
+				imgUrl: null,
+			};
 		default:
 			return state;
 	}
@@ -50,17 +63,22 @@ const beholder = (store) => (next) => (action) => {
 };
 
 const render = function (state) {
-	const { count, message } = state;
+	const { count, message, imgUrl } = state;
 
 	document.querySelector('.count').innerHTML = `<h1>${count}</h1>`;
 	document.querySelector('.message').innerHTML = `<h1>${message}${count === 0 ? '빨리 뭐라도 해볼까요?' : ''}</h1>`;
+	document.querySelector('.dog-album').innerHTML = `<img src="${imgUrl}">`;
 };
 
 // Store
-const store = createStore(reducer, applyMiddleware(beholder));
+const store = createStore(reducer, composeWithDevTools(applyMiddleware(ReduxThunk, beholder)));
 
 // Subscribe
-store.subscribe(() => render(store.getState()));
+store.subscribe(() => {
+	const currentState = store.getState();
+
+	render(currentState);
+});
 
 const init = function () {
 	render(initState);
@@ -70,6 +88,15 @@ const init = function () {
 			type: INCREMENT,
 			payload: '증가하겠습니다',
 		});
+
+		fetch('https://dog.ceo/api/breeds/image/random/' + store.getState().count)
+			.then((response) => response.json())
+			.then(({ message, status }) => {
+				const [firstDogImageUrl] = message;
+
+				store.dispatch({ type: 'GET_DOG_SUCCESS', payload: firstDogImageUrl });
+			})
+			.catch((e) => store.dispatch({ type: 'GET_DOG_ERROR', error: e }));
 	});
 
 	document.querySelector('.decrement-btn').addEventListener('click', function () {

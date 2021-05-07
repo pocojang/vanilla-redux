@@ -9,9 +9,11 @@
 		"dev": "parcel src/index.html --open"
 	},
 	"devDependencies": {
-		"parcel-bundler": "^1.12.5"
+		"parcel-bundler": "^1.12.5",
+		"redux-devtools-extension": "^2.13.9"
 	},
 	"dependencies": {
-		"redux": "^4.1.0"
+		"redux": "^4.1.0",
+		"redux-thunk": "^2.3.0"
 	}
 }
