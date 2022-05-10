@@ -3,15 +3,21 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 
 /**
  * @see {@link redux-thunk}
- * @see {@link https://github.com/reduxjs/redux-thunk/blob/master/src/index.js}
+ * @see {@link https://github.com/reduxjs/redux-thunk/blob/master/src/index.ts}
  */
 function createThunkMiddleware(extraArgument) {
-	return ({ dispatch, getState }) => (next) => (action) => {
-		if (typeof action === 'function') {
-			return action(dispatch, getState, extraArgument);
-		}
+	return function ({ dispatch, getState }) {
+		return function (next) {
+			return function (action) {
+				if (typeof action === 'function') {
+					// getDog()
+					return action(dispatch, getState, extraArgument);
+				}
 
-		return next(action);
+				// { type: INCREMENT, payload: '증가하겠습니다' }
+				return next(action);
+			};
+		};
 	};
 }
 
@@ -44,7 +50,7 @@ const reset = {
 	type: RESET,
 };
 
-const getDog = () => (dispatch, getState) => {
+const getDog = () => (dispatch, getState, extraArgument) => {
 	fetch('https://dog.ceo/api/breeds/image/random/' + getState().count)
 		.then((response) => response.json())
 		.then(({ message, status }) => {
@@ -96,10 +102,21 @@ const beholder = (store) => (next) => (action) => {
 		if (action.type === RESET) {
 			return next({
 				type: RESET,
-				message: '이제 아무것도 안하는건가요?',
+				message: '왜 안되는걸까요???',
 			});
 		}
 	}, 1000);
+
+	return next(action);
+};
+
+const lokbaSeven = (store) => (next) => (action) => {
+	if (action.type === INCREMENT) {
+		return next({
+			type: INCREMENT,
+			message: '록바의 자신감은 우주와 같이 상승하고 있다.',
+		});
+	}
 
 	return next(action);
 };
@@ -108,12 +125,19 @@ const render = function (state) {
 	const { count, message, imgUrl } = state;
 
 	document.querySelector('.count').innerHTML = `<h1>${count}</h1>`;
-	document.querySelector('.message').innerHTML = `<h1>${message}${count === 0 ? '빨리 뭐라도 해볼까요?' : ''}</h1>`;
-	document.querySelector('.dog-album').innerHTML = `<img src="${imgUrl}" style="max-height: 500px;">`;
+	document.querySelector('.message').innerHTML = `<h1>${message}${
+		count === 0 ? '빨리 뭐라도 해볼까요?' : ''
+	}</h1>`;
+	document.querySelector(
+		'.dog-album',
+	).innerHTML = `<img src="${imgUrl}" style="max-height: 500px;">`;
 };
 
 // Store
-const store = createStore(reducer, composeWithDevTools(applyMiddleware(ReduxThunk, beholder)));
+const store = createStore(
+	reducer,
+	composeWithDevTools(applyMiddleware(ReduxThunk, beholder)),
+);
 
 // Subscribe
 store.subscribe(() => {
@@ -125,15 +149,21 @@ store.subscribe(() => {
 const init = function () {
 	render(initState);
 
-	document.querySelector('.increment-btn').addEventListener('click', function () {
-		store.dispatch(increment);
-		store.dispatch(getDog());
-	});
+	document
+		.querySelector('.increment-btn')
+		.addEventListener('click', function () {
+			// dispatch에게 순수한걸 넘기고 있다.
+			store.dispatch({ type: INCREMENT, payload: '증가하겠습니다' });
+			// dispatch에 순수하지 않은 함수를 넘기고 있다.
+			store.dispatch(getDog());
+		});
 
-	document.querySelector('.decrement-btn').addEventListener('click', function () {
-		store.dispatch(decrement);
-		store.dispatch(getDog());
-	});
+	document
+		.querySelector('.decrement-btn')
+		.addEventListener('click', function () {
+			store.dispatch(decrement);
+			store.dispatch(getDog());
+		});
 
 	document.querySelector('.reset-btn').addEventListener('click', function () {
 		store.dispatch(reset);
